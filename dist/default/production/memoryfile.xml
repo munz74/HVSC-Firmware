@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project>
+  <executable name="dist/default/production/EV_HVSC_DMA_PWM24.X.production.elf">
+    <memory name="data">
+      <units>bytes</units>
+      <length>16384</length>
+      <used>628</used>
+      <free>15756</free>
+    </memory>
+    <memory name="program">
+      <units>bytes</units>
+      <length>261696</length>
+      <used>14067</used>
+      <free>247629</free>
+    </memory>
+  </executable>
+</project>
