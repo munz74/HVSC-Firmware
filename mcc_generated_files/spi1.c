@@ -95,7 +95,7 @@ void SPI1_Exchange( uint8_t *pTransmitData, uint8_t *pReceiveData )
         *((uint8_t*)pReceiveData) = SPI1BUF;
 
 }
-
+// uint16_t SPI1_Exchange8bitBuffer(uint8_t *dataTransmitted, uint16_t byteCount, uint8_t *dataReceived)
 uint16_t SPI1_ExchangeBuffer(uint8_t *pTransmitData, uint16_t byteCount, uint8_t *pReceiveData)
 {
 

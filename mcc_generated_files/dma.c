@@ -49,10 +49,12 @@ MPLAB             :  MPLAB X 3.45
 
 extern volatile unsigned int BufferA[4];//
 extern volatile unsigned int Buffer1A[6] ;//
-//extern volatile unsigned int uart_plag1;
+
 
 extern volatile unsigned char *bufferA_8bit_pointer;
-//extern volatile unsigned char transfer1[2];
+extern volatile unsigned char range;
+extern volatile unsigned char mode_plug;
+extern volatile unsigned char comm_error;// =0b00001000 ;// Communication Error 3rd bit 
 
 extern volatile int32_t capture2; 
 extern volatile unsigned char *capture2_1byte_pointer; 
@@ -116,18 +118,19 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _DMA1Interrupt( void )   // DM
 {
     
     unsigned char transfer1[2] ={0xA1,0x0D};//
+      
     
        //***User Area Begin
     INTERRUPT_GlobalDisable();
         
     
-        if((Buffer1A[0]==0x02)&&(Buffer1A[3]==0x0D)){
+        if((Buffer1A[0]==0x0002)&&(Buffer1A[3]==0x000D)){
             
-            transfer1[0]=0xA1;
-
+            transfer1[0]=mode_plug|range|comm_error;
+ 
         }else{  // 정상 Protocol이 아님
             
-           transfer1[0]=0xC1;
+           transfer1[0]=0xF0|range;
 
            IEC0bits.U1RXIE = 0;  // interrupt 
            U1MODEbits.UARTEN = 0;// 순서가 중요. 먼저 끄고 

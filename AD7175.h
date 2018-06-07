@@ -61,9 +61,13 @@
 /*****************************************************************************/
 int32_t AD7175_ReadRegister(st_reg* pReg);
 int32_t AD7175_WriteRegister(st_reg reg);
-int32_t AD7175_WaitForReady(uint32_t timeout);
-int32_t AD7175_ReadData(volatile int32_t* pData);
+//int32_t AD7175_WaitForReady(uint32_t timeout);
+int32_t AD7175_WaitForReady(uint32_t timeout,st_reg *AD7175_regs);
+//int32_t AD7175_ReadData(volatile int32_t* pData);
+int32_t AD7175_ReadData(volatile int32_t* pData,st_reg *AD7175_regs); 
 uint8_t AD7175_ComputeCRC(uint8_t* pBuf, uint8_t bufSize);
-int32_t AD7175_Setup(void);
+//int32_t AD7175_Setup(void);
+int32_t AD7175_Setup(st_reg *AD7175_regs);
+
 
 #endif // __AD7175_H__

@@ -153,7 +153,7 @@ int32_t AD7175_WriteRegister(st_reg reg)
 *
 * @return Returns 0 for success or negative error code.
 ******************************************************************************/
-int32_t AD7175_WaitForReady(uint32_t timeout)
+int32_t AD7175_WaitForReady(uint32_t timeout,st_reg *AD7175_regs)
 {
     int32_t ret;
     int8_t ready = 0;
@@ -179,7 +179,7 @@ int32_t AD7175_WaitForReady(uint32_t timeout)
 *
 * @return Returns 0 for success or negative error code.
 ******************************************************************************/
-int32_t AD7175_ReadData(volatile int32_t* pData)
+int32_t AD7175_ReadData(volatile int32_t* pData, st_reg *AD7175_regs) 
 {
     volatile int32_t ret;
 
@@ -225,7 +225,7 @@ uint8_t AD7175_ComputeCRC(uint8_t* pBuf, uint8_t bufSize)
 *
 * @return Returns 0 for success or negative error code.
 ******************************************************************************/
-int32_t AD7175_Setup(void)
+int32_t AD7175_Setup(st_reg *AD7175_regs)
 {
     int32_t ret;
 
@@ -242,7 +242,7 @@ int32_t AD7175_Setup(void)
     
     /* Initialize ADC mode register */
     
-    ret = AD7175_WriteRegister(AD7175_regs[ADC_Mode_Register]);
+    ret = AD7175_WriteRegister(AD7175_regs[ADC_Mode_Register]);  //AD7175_reg.h의 st_reg AD7175_regs[] 의 값을 쓴다. 
     if(ret < 0)
         return ret;
     

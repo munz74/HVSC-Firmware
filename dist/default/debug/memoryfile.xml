@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <executable name="dist/default/debug/EV_HVSC_DMA_PWM24.X.debug.elf">
+  <executable name="dist/default/debug/HVSC-Firmware.debug.elf">
     <memory name="data">
       <units>bytes</units>
       <length>16384</length>
-      <used>708</used>
-      <free>15676</free>
+      <used>1280</used>
+      <free>15104</free>
     </memory>
     <memory name="program">
       <units>bytes</units>
       <length>261696</length>
-      <used>14070</used>
-      <free>247626</free>
+      <used>15633</used>
+      <free>246063</free>
     </memory>
   </executable>
 </project>

@@ -88,27 +88,90 @@ enum AD7175_registers
 
 #ifdef AD7175_INIT
 /*! Array holding the info for the AD7175 registers - address, initial value, size */
-st_reg AD7175_regs[] = 
+st_reg AD7175_regs1[] = 
 {
     {0x00, 0x00,   1}, //Status_Register
-    {0x01, 0x210C, 2}, //ADC_Mode_Register / external crystal  0x210C
+    {0x01, 0x210C, 2}, //ADC_Mode_Register / external crystal continuous mode 0x210C
     {0x02, 0x0000, 2}, //Interface_Mode_Register  0x0140,
     {0x04, 0x0000, 3}, //Data_Register
   //  {0x05, 0x0000, 2}, //IOCon_Register
     {0x06, 0x0000, 2}, //GPIOCON
     {0x07, 0x0000, 2}, //ID_AD7175
-    {0x10, 0x8001, 2}, //CH_Map_1   0x8004, / temp+ temp- 
-	{0x11, 0x0000, 2}, //CH_Map_2
-	{0x12, 0x0000, 2}, //CH_Map_3
-	{0x13, 0x0000, 2}, //CH_Map_4
-	{0x20, 0x1300, 2}, //Setup_Config_1  0x1300
-	{0x21, 0x0000, 2}, //Setup_Config_2
+    {0x10, 0x8001, 2}, //CH_Map_1  =    0b1000,0000,0000,0001  => Channel_1 enabled and an0 and an1 : 시험용 
+	{0x11, 0x0000, 2}, //CH_Map_2  =    0b1000,0000,0100,0011  => Channel_2 enabled and an2 and an3 : 2차 보드 10V, 30V, 600V setup0
+	{0x12, 0x0000, 2}, //CH_Map_3  =    0b1001,0000,0100,0011  => Channel_3 enabled and an2 and an3 : 2차 보드 2V  setup1
+	{0x13, 0x0000, 2}, //CH_Map_4  =    0b1001,0001,0001,0001  => Channel_4 enabled and an8 and an9 : 2차 보드 monitor  setup0
+	{0x20, 0x1300, 2}, //Setup_Config_1  = 0b0001,0011,0000,0000   // bipolar external ref
+	{0x21, 0x1310, 2}, //Setup_Config_2  = 0b0001,0011,0001,0000   // bipolar external ref2 
 	{0x22, 0x0000, 2}, //Setup_Config_3
 	{0x23, 0x0000, 2}, //Setup_Config_4
-	{0x28, 0x150A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
-	{0x29, 0x0200, 2}, //Filter_Config_2
-	{0x2a, 0x0200, 2}, //Filter_Config_3
-	{0x2b, 0x0200, 2}, //Filter_Config_4
+	{0x28, 0x050A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
+	{0x29, 0x050A, 2}, //Filter_Config_2
+	{0x2a, 0x050A, 2}, //Filter_Config_3
+	{0x2b, 0x050A, 2}, //Filter_Config_4
+	{0x30, 0, 3}, //Offset_1   0x7FFF13
+	{0x31, 0, 3}, //Offset_2
+	{0x32, 0, 3}, //Offset_3
+	{0x33, 0, 3}, //Offset_4
+	{0x38, 0, 3}, //Gain_1
+	{0x39, 0, 3}, //Gain_2
+	{0x3a, 0, 3}, //Gain_3
+	{0x3b, 0, 3}, //Gain_4
+	{0xFF, 0, 1} //Communications_Register
+};
+
+st_reg AD7175_regs2[] = 
+{
+    {0x00, 0x00,   1}, //Status_Register
+    {0x01, 0x210C, 2}, //ADC_Mode_Register / external crystal continuous mode 0x210C
+    {0x02, 0x0000, 2}, //Interface_Mode_Register  0x0140,
+    {0x04, 0x0000, 3}, //Data_Register
+  //  {0x05, 0x0000, 2}, //IOCon_Register
+    {0x06, 0x0000, 2}, //GPIOCON
+    {0x07, 0x0000, 2}, //ID_AD7175
+    {0x10, 0x0001, 2}, //CH_Map_1  =    0b1000,0000,0000,0001  => Channel_1 enabled and an0 and an1 : 시험용 
+	{0x11, 0x8043, 2}, //CH_Map_2  =    0b1000,0000,0100,0011  => Channel_2 enabled and an2 and an3 : 2차 보드 10V, 30V, 600V setup0
+	{0x12, 0x0000, 2}, //CH_Map_3  =    0b1001,0000,0100,0011  => Channel_3 enabled and an2 and an3 : 2차 보드 2V  setup1
+	{0x13, 0x0000, 2}, //CH_Map_4  =    0b1001,0001,0001,0001  => Channel_4 enabled and an8 and an9 : 2차 보드 monitor  setup0
+	{0x20, 0x1300, 2}, //Setup_Config_1  = 0b0001,0011,0000,0000   // bipolar external ref
+	{0x21, 0x1310, 2}, //Setup_Config_2  = 0b0001,0011,0001,0000   // bipolar external ref2 
+	{0x22, 0x0000, 2}, //Setup_Config_3
+	{0x23, 0x0000, 2}, //Setup_Config_4
+	{0x28, 0x050A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
+	{0x29, 0x050A, 2}, //Filter_Config_2
+	{0x2a, 0x050A, 2}, //Filter_Config_3
+	{0x2b, 0x050A, 2}, //Filter_Config_4
+	{0x30, 0, 3}, //Offset_1   0x7FFF13
+	{0x31, 0, 3}, //Offset_2
+	{0x32, 0, 3}, //Offset_3
+	{0x33, 0, 3}, //Offset_4
+	{0x38, 0, 3}, //Gain_1
+	{0x39, 0, 3}, //Gain_2
+	{0x3a, 0, 3}, //Gain_3
+	{0x3b, 0, 3}, //Gain_4
+	{0xFF, 0, 1} //Communications_Register
+};
+st_reg AD7175_regs3[] = 
+{
+    {0x00, 0x00,   1}, //Status_Register
+    {0x01, 0x210C, 2}, //ADC_Mode_Register / external crystal continuous mode 0x210C
+    {0x02, 0x0000, 2}, //Interface_Mode_Register  0x0140,
+    {0x04, 0x0000, 3}, //Data_Register
+//  {0x05, 0x0000, 2}, //IOCon_Register
+    {0x06, 0x0000, 2}, //GPIOCON
+    {0x07, 0x0000, 2}, //ID_AD7175
+    {0x10, 0x0001, 2}, //CH_Map_1  =    0b1000,0000,0000,0001  => Channel_1 enabled and an0 and an1 : 시험용 
+	{0x11, 0x0000, 2}, //CH_Map_2  =    0b1000,0000,0100,0011  => Channel_2 enabled and an2 and an3 : 2차 보드 10V, 30V, 600V setup0
+	{0x12, 0x0000, 2}, //CH_Map_3  =    0b1001,0000,0100,0011  => Channel_3 enabled and an2 and an3 : 2차 보드 2V  setup1
+	{0x13, 0x9111, 2}, //CH_Map_4  =    0b1001,0001,0001,0001  => Channel_4 enabled and an8 and an9 : 2차 보드 monitor  setup0
+	{0x20, 0x1300, 2}, //Setup_Config_1  = 0b0001,0011,0000,0000   // bipolar external ref
+	{0x21, 0x1310, 2}, //Setup_Config_2  = 0b0001,0011,0001,0000   // bipolar external ref2 
+	{0x22, 0x0000, 2}, //Setup_Config_3
+	{0x23, 0x0000, 2}, //Setup_Config_4
+	{0x28, 0x050A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
+	{0x29, 0x050A, 2}, //Filter_Config_2
+	{0x2a, 0x050A, 2}, //Filter_Config_3
+	{0x2b, 0x050A, 2}, //Filter_Config_4
 	{0x30, 0, 3}, //Offset_1   0x7FFF13
 	{0x31, 0, 3}, //Offset_2
 	{0x32, 0, 3}, //Offset_3
@@ -120,7 +183,9 @@ st_reg AD7175_regs[] =
 	{0xFF, 0, 1} //Communications_Register
 };
 #else
-extern st_reg AD7175_regs[AD7175_REG_NO];
+extern st_reg AD7175_regs1[AD7175_REG_NO];
+extern st_reg AD7175_regs2[AD7175_REG_NO];
+extern st_reg AD7175_regs3[AD7175_REG_NO];
 #endif
 
 #define AD7175_SLAVE_ID    1

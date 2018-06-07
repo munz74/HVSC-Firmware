@@ -30,6 +30,7 @@
 #include "../AD7175.h"
 
 extern volatile int32_t capture1;
+//extern volatile st_reg AD7175_regs1;
 
 //***User Area End->code: Add External Interrupt handler specific headers
 
@@ -43,8 +44,9 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _INT1Interrupt(void)  // int0 
 {
     //***User Area Begin->code: External Interrupt 1***
         long ret = 0;
+        st_reg AD7175_regs_reading= {0x04, 0x0000, 3};  //   {0x04, 0x0000, 3}, //Data_Register
     
-        ret = AD7175_ReadData(&capture1);
+        ret = AD7175_ReadData(&capture1,&AD7175_regs_reading);
 
     //***User Area End->code: External Interrupt 1***
     EX_INT1_InterruptFlagClear();
