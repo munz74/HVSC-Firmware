@@ -135,8 +135,8 @@ st_reg AD7175_regs2[] =
 	{0x13, 0x0000, 2}, //CH_Map_4  =    0b1001,0001,0001,0001  => Channel_4 enabled and an8 and an9 : 2차 보드 monitor  setup0
 	{0x20, 0x1300, 2}, //Setup_Config_1  = 0b0001,0011,0000,0000   // bipolar external ref
 	{0x21, 0x1310, 2}, //Setup_Config_2  = 0b0001,0011,0001,0000   // bipolar external ref2 
-	{0x22, 0x0000, 2}, //Setup_Config_3
-	{0x23, 0x0000, 2}, //Setup_Config_4
+	{0x22, 0x1300, 2}, //Setup_Config_3
+	{0x23, 0x1300, 2}, //Setup_Config_4
 	{0x28, 0x050A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
 	{0x29, 0x050A, 2}, //Filter_Config_2
 	{0x2a, 0x050A, 2}, //Filter_Config_3
@@ -166,8 +166,8 @@ st_reg AD7175_regs3[] =
 	{0x13, 0x9111, 2}, //CH_Map_4  =    0b1001,0001,0001,0001  => Channel_4 enabled and an8 and an9 : 2차 보드 monitor  setup0
 	{0x20, 0x1300, 2}, //Setup_Config_1  = 0b0001,0011,0000,0000   // bipolar external ref
 	{0x21, 0x1310, 2}, //Setup_Config_2  = 0b0001,0011,0001,0000   // bipolar external ref2 
-	{0x22, 0x0000, 2}, //Setup_Config_3
-	{0x23, 0x0000, 2}, //Setup_Config_4
+	{0x22, 0x1300, 2}, //Setup_Config_3
+	{0x23, 0x1300, 2}, //Setup_Config_4
 	{0x28, 0x050A, 2}, //Filter_Config_1  0x020A=1kHz,  0x050A
 	{0x29, 0x050A, 2}, //Filter_Config_2
 	{0x2a, 0x050A, 2}, //Filter_Config_3

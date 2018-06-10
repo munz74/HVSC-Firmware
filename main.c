@@ -58,10 +58,10 @@
 volatile int32_t capture1=0; 
 volatile int32_t capture2=0; 
 
-volatile unsigned int Buffer1A[4]={0x0A0D,0x0A0D,0x3433,0x3231}; // receiver
+volatile unsigned int BufferB[4]={0x0A0D,0x0A0D,0x3433,0x3231}; // receiver
 volatile unsigned int BufferA[4]= {0x0A0D,0x0A0D,0x3433,0x3231};//,0x0D37,0x3738,0x3738,0x3738,0x3738};  transmit
 
-volatile unsigned char mode_plug=0xF0 ;// A Normal reading , B test signal application, C wire break monitor, 0xF0 =초기값 ADC setup확인 
+volatile unsigned char mode_plug=0xC0 ;// A Normal reading , B test signal application, C wire break monitor, 0xF0 =초기값 ADC setup확인 
 volatile unsigned char comm_error=0b00001000 ;// Communication Error 3rd bit 
 
 volatile unsigned char range=0 ; // 1: 1V, 2: 10V, 3: 30V, 4: 600V range, 0 은 setting이 안된상태
@@ -72,7 +72,7 @@ volatile unsigned char *capture2_1byte_pointer = (unsigned char *)&capture2;   /
 
 int spi_starting_test(void){
 
-    uint8_t trans_buffer1[3]={0x47,SPI1_DUMMY_DATA,SPI1_DUMMY_DATA};   //#define SPI1_DUMMY_DATA 0x0
+    uint8_t trans_buffer1[3]={0x47,SPI1_DUMMY_DATA,SPI1_DUMMY_DATA};   //#define SPI1_DUMMY_DATA 0x0 0x47 ID read command
     uint8_t  read_buffer1[3];
   
     uint8_t  reset1[10]={0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff,0xff};
@@ -89,35 +89,35 @@ int spi_starting_test(void){
 
     __delay32(150000);
     
-//              SPI1_Exchange8bit( spi_read_add1 );  // output SPI1_Exchange8bit( uint8_t input )
-    spi_read1=SPI1_Exchange8bit( spi_read_add1 );   // ID 확인 하기 
-    spi_read2=SPI1_Exchange8bit( spi_read_add1 );   // ID 확인 하기
+              SPI1_Exchange8bit( spi_read_add1 );  // output SPI1_Exchange8bit( uint8_t input )   Command 보내고
+    spi_read1=SPI1_Exchange8bit( SPI1_DUMMY_DATA );   // ID 확인 하기 ; 앞에 8bit 읽어 오기   
+    spi_read2=SPI1_Exchange8bit( SPI1_DUMMY_DATA );   // ID 확인 하기 ; 뒤에 8bit 읽어 오기 
  
     printf("AD7175 ID1:  %X, %X\n", spi_read1, spi_read2);
 
     
     SPI1_Exchange8bitBuffer(trans_buffer1, 3, read_buffer1);    //  uint16_t SPI1_Exchange8bitBuffer(uint8_t *dataTransmitted, uint16_t byteCount, uint8_t *dataReceived)
-        
+                                                                //  3 byte : command + 2byte reading 
     printf("AD7175 ID2:  %X, %X\n",  read_buffer1[1], read_buffer1[2]);
     
   
     /* Read the value of the Status Register */
-    ret = AD7175_ReadRegister(&AD7175_regs1[ID_AD7175]);
+    ret = AD7175_ReadRegister(&AD7175_regs1[ID_AD7175]);  // ret 몇 byte가 읽히고 쓰였는지 기록, 통상 2 or 3
 
     pData1 = AD7175_regs1[ID_AD7175].value;
 
-    printf("AD7175 ID3: %ld  %lX  \n", ret, pData1 );
+ //   printf("AD7175 ID3: %ld  %lX  \n", ret, pData1 );
 
         
-    if(ret < 0)  {   
+    if(ret < 0){   
             printf("AD7175 Err \n");
-        }
+    }
     else{
-            printf("AD7175 OK ,%ld \n", ret);
-        } 
+            printf("AD7175 OK, ID3 : %lX, status : %ld \n", pData1, ret);
+    } 
  
         
-        return ret;
+    return ret;
 }
     
 
@@ -132,35 +132,61 @@ unsigned char range_reading(void){
     IO_RB15_SetDigitalInput();
     
     selector1[0]=IO_RB12_GetValue();
-    selector1[1]=IO_RB13_GetValue();
-    selector1[2]=IO_RB14_GetValue();
-    selector1[3]=IO_RB15_GetValue();    
+    selector1[1]=IO_RB13_GetValue()<<1;
+    selector1[2]=IO_RB14_GetValue()<<2;
+    selector1[3]=IO_RB15_GetValue()<<3;    
     
-    selector1[4]=selector1[0]+(selector1[1]<1)+(selector1[2]<2)+(selector1[3]<3);
+    selector1[4]=selector1[0]+selector1[1]+selector1[2]+selector1[3];
     
     switch(selector1[4]){  // range read and range plug setting 
  
-        case 1 : return(1); break;    //600V
-        case 2 : return(2); break;    //30V 
-        case 4 : return(3); break;    //10V
-        case 8 : return(4); break;    // 2V
-        default : return(0); break;   // range read error 
+        case 0xE  : return(4); break;    //600V  0b 0000 1110
+        case 0xD  : return(3); break;    //30V 0b 0000 1101
+        case 0xB  : return(2); break;    //10V   0b 0000 1011
+        case 0x7  : return(1); break;    // 2V
+        default   : return(0); break;    // range read error 
   }       
     
     
-}   
+} 
+
+   unsigned char ADC_setup_initial(unsigned char range){
+
+    long ret = 0;
+ 
+        __delay32(1000);
+        IO_RB0_SetLow(); // AD7175 enable
+        if(range ==0x04){
+            ret = AD7175_Setup(AD7175_regs2);  // 2.048V ADC reading
+        }else{
+            ret = AD7175_Setup(AD7175_regs1);  // 5V ADC reading
+        }
+        __delay32(1000);
+        IO_RB0_SetHigh(); // AD7175 disable
+
+        IO_RA0_SetHigh();    // Sine OFF
+        IO_RA1_SetHigh();    // wirebreak OFF
+
+    mode_plug=0xA0;// A Normal reading , B test signal application, C wire break monitor
     
+    return(ret);
+}
+   
 unsigned char ADC_setup_normal(unsigned char range){
 
     long ret = 0;
+
+        IO_RA0_SetHigh();    // Sine OFF
+        IO_RA1_SetHigh();    // wirebreak OFF
+
+    if(mode_plug==0xC0){  // 초기값 0xC0가 반영된다.  A0에서 왔을때는 아무것도 안한다. B0에서 왔을대는 GPIO만 변경
     
-    if(mode_plug!=0xA0){  // 초기값 0xF0가 반영된다. 
-    
-        mode_plug=0xA0 ;// A Normal reading , B test signal application, C wire break monitor
     
             INTERRUPT_GlobalDisable();
-            __delay32(1000);
-        
+            IO_RB0_SetHigh(); // AD7175 disable
+            __delay32(100);
+            IO_RB0_SetLow(); // AD7175 enable
+            __delay32(100);
             if(range ==0x04){
                 ret = AD7175_Setup(AD7175_regs2);  // 2.048V ADC reading
             }else{
@@ -169,19 +195,19 @@ unsigned char ADC_setup_normal(unsigned char range){
             __delay32(100);
             INTERRUPT_GlobalEnable();
 
-            IO_RA0_SetHigh();    // Sine OFF
-            IO_RA1_SetHigh();    // wirebreak OFF
-
     }
-    
+
+    mode_plug=0xA0 ;// A Normal reading , B test signal application, C wire break monitor
+   
     return(ret);
 }    
+
 
 unsigned char ADC_setup_signal(unsigned char range){
 
     long ret = 0;
     
-    if(mode_plug==0xA0){  
+    if(mode_plug==0xA0){  // Mode 0xA0에서 온것만 처리 한다. 
 
         mode_plug=0xB0 ;// A Normal reading , B test signal application, C wire break monitor
         
@@ -195,12 +221,16 @@ unsigned char ADC_setup_wirebreak(unsigned char range){
 
     long ret = 0;
     
-    if(mode_plug==0xB0){
+    if(mode_plug==0xB0){  // Mode 0xB0에서 온것 만 처리 한다. 
 
-        mode_plug=0xC0 ;// A Normal reading , B test signal application, C wire break monitor
+        mode_plug=0xC0 ;  // A Normal reading , B test signal application, C wire break monitor
 
             INTERRUPT_GlobalDisable();
-            __delay32(1000);
+            __delay32(100);
+            IO_RB0_SetHigh(); // AD7175 disable
+            __delay32(100);
+            IO_RB0_SetLow();  // AD7175 enable
+            __delay32(100);
             ret = AD7175_Setup(AD7175_regs3);  // AN8 AN9 Reading 
             __delay32(100);
             INTERRUPT_GlobalEnable();
@@ -217,7 +247,7 @@ int main(void)
     unsigned int roll=0;
     long ret = 0;
 
-    int64_t *command= (int64_t *)Buffer1A, command_plug=0x0;//
+    int64_t *command= (int64_t *)BufferB, command_plug=0x0;//
  
     SYSTEM_Initialize();
     
@@ -240,8 +270,8 @@ int main(void)
     DMA1PAD = (volatile unsigned int) &U1RXREG;
     DMA_PeripheralAddressSet(DMA_CHANNEL_1, &U1RXREG);
     
-    DMA1STAL= (volatile unsigned int) Buffer1A;
-    DMA1STAH= (volatile unsigned int) Buffer1A;
+    DMA1STAL= (volatile unsigned int) BufferB;
+    DMA1STAH= (volatile unsigned int) BufferB;
     
     IEC4bits.U1EIE=0x01; // UART ERROR interrupt. 
  
@@ -255,23 +285,18 @@ int main(void)
 
 //GPIO setting 
 
-    
     IO_RA0_SetDigitalOutput();    
-    IO_RA0_SetHigh();    // Sine OFF
-//    IO_RA0_SetLow();   // Sine ON
-
     IO_RA1_SetDigitalOutput();    
+    IO_RA0_SetHigh();    // Sine OFF
     IO_RA1_SetHigh();    // wirebreak OFF
-//    IO_RA1_SetLow();   // wirebreak ON  
-    
+
     
 // Selector Range reading    
     range = range_reading();
 
-    ret=ADC_setup_normal(range);
-    INTERRUPT_GlobalDisable();
-    IO_RB0_SetHigh();  // AD7175 off
-    __delay32(10000);
+    ret=ADC_setup_initial(range);
+
+    __delay32(1000);
     
     // PWM DAC start
     OC1_Tasks();  
@@ -280,7 +305,7 @@ int main(void)
     INTERRUPT_GlobalEnable();
 
     IO_RB0_SetLow();  // AD7175 start
-    __delay32(10000);
+    __delay32(1000);
 
     while (1)
     {
@@ -289,30 +314,26 @@ int main(void)
             command_plug=*command;
             
             switch(command_plug){
-                    case 0x000200520044000D : comm_error=0b00000000; break; // RD
-                    case 0x000200570054000D : ADC_setup_wirebreak(range); break; // WT ADC Setting function1
-                    case 0x000200540054000D : ADC_setup_signal(range); break; // ST ADC Setting function2
-                    case 0x000200430054000D : ADC_setup_normal(range); break; // CT ADC initial Setting function0
-                    default : comm_error=0b00001000; break;
+                    case 0x000D004400520002 : comm_error=0b00000000;        break; // RD
+                    case 0x000D005400570002 : ADC_setup_wirebreak(range);   break; // WT ADC Setting function1
+                    case 0x000D005400530002 : ADC_setup_signal(range);      break; // ST ADC Setting function2
+                    case 0x000D005400430002 : ADC_setup_normal(range);      break; // CT ADC initial Setting function0
+                    default                 : comm_error=0b00001000;        break;
             }
 
         }
-        
-        
-        
-        
-        
+       
        
        if(capture2!=capture1){  //ADC 값이 바뀌었을때 값을 update 한다. 
            
             capture2=capture1;
-           
             roll=(unsigned int)((0x00FFFF00&capture2)>>8);
             OC1_PrimaryValueSet(roll);   // PWM Output
             
        }
     
     }
+    
     return 0xFF;
 
 }

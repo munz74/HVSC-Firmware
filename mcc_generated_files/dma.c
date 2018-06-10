@@ -48,7 +48,7 @@ MPLAB             :  MPLAB X 3.45
 #include "uart1.h"
 
 extern volatile unsigned int BufferA[4];//
-extern volatile unsigned int Buffer1A[6] ;//
+extern volatile unsigned int BufferB[6] ;//
 
 
 extern volatile unsigned char *bufferA_8bit_pointer;
@@ -124,32 +124,31 @@ void __attribute__ ( ( interrupt, no_auto_psv ) ) _DMA1Interrupt( void )   // DM
     INTERRUPT_GlobalDisable();
         
     
-        if((Buffer1A[0]==0x0002)&&(Buffer1A[3]==0x000D)){
-            
-            transfer1[0]=mode_plug|range|comm_error;
- 
+        if((BufferB[0]==0x0002)&&(BufferB[3]==0x000D)){
         }else{  // 정상 Protocol이 아님
             
-           transfer1[0]=0xF0|range;
+           comm_error =0b00001000;
 
            IEC0bits.U1RXIE = 0;  // interrupt 
            U1MODEbits.UARTEN = 0;// 순서가 중요. 먼저 끄고 
            UART1_Initialize();  // 다시 켠다
    
         }
-        
-              transfer1[1]=~(transfer1[0]+capture2_1byte_pointer[0]+capture2_1byte_pointer[1]+capture2_1byte_pointer[2]);  // checksum one's complements
+             
+    transfer1[0]=mode_plug|range|comm_error;
+             
+    transfer1[1]=~(transfer1[0]+capture2_1byte_pointer[0]+capture2_1byte_pointer[1]+capture2_1byte_pointer[2]);  // checksum one's complements
     
     
-                bufferA_8bit_pointer[0] = transfer1[0];
-                bufferA_8bit_pointer[1] = capture2_1byte_pointer[2];
-                bufferA_8bit_pointer[2] = capture2_1byte_pointer[1];
-                bufferA_8bit_pointer[3] = capture2_1byte_pointer[0];
-                bufferA_8bit_pointer[4] = transfer1[1];   
+    bufferA_8bit_pointer[0] = transfer1[0];
+    bufferA_8bit_pointer[1] = capture2_1byte_pointer[2];
+    bufferA_8bit_pointer[2] = capture2_1byte_pointer[1];
+    bufferA_8bit_pointer[3] = capture2_1byte_pointer[0];
+    bufferA_8bit_pointer[4] = transfer1[1];   
         
         
-        DMA_ChannelEnable(DMA_CHANNEL_0);  // 4byte 입력이 들어 오면 무조건 DATA를 보낸다. // ERROR는 추후에 교정 
-        DMA_SoftwareTriggerEnable(DMA_CHANNEL_0); // 위와 같은 행위 UART TX 구동 
+    DMA_ChannelEnable(DMA_CHANNEL_0);  // 4byte 입력이 들어 오면 무조건 DATA를 보낸다. // ERROR는 추후에 교정 
+    DMA_SoftwareTriggerEnable(DMA_CHANNEL_0); // 위와 같은 행위 UART TX 구동 
 
 
     IFS0bits.DMA1IF = 0;  // Clear DMA interrupt
